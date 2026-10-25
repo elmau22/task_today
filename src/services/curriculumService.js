@@ -261,8 +261,29 @@ export const curriculumService = {
     const titleLower = (materialTitle || '').toLowerCase();
     const cleanDesc = (materialDescription || '').trim();
 
-    // 1. JIKA MATERI MEMILIKI DESKRIPSI / TEKS ASLI DI DATABASE:
-    // Selalu prioritaskan isi teks asli yang diunggah / ditulis pengguna!
+    // 1. CEK APAKAH INI MODUL RESMI RPL / SDLC (PERTEMUAN 1 BU DIAN):
+    const isAuthenticRpl =
+      titleLower.includes('rekayasa perangkat lunak') ||
+      titleLower.includes('sdlc') ||
+      titleLower.includes('analisis & desain');
+
+    // Jika ini adalah modul resmi Pertemuan 1 RPL/SDLC dan deskripsinya merupakan catatan ringkas:
+    // Selalu tampilkan kurikulum autentik lengkap (6 bab utuh, tabel artefak SDLC, diagram alur, studi kasus SIPUS)
+    // yang sesuai dengan berkas PDF silabus Bu Dian!
+    if (
+      num === 1 &&
+      isAuthenticRpl &&
+      DEFAULT_MODULE_CONTENT[1] &&
+      cleanDesc.length < 1500
+    ) {
+      return {
+        ...DEFAULT_MODULE_CONTENT[1],
+        title: materialTitle || DEFAULT_MODULE_CONTENT[1].title,
+      };
+    }
+
+    // 2. JIKA MATERI MEMILIKI DESKRIPSI / TEKS ASLI DI DATABASE (MISAL: GEMINI AI, KECERDASAN BUATAN, DLL):
+    // Prioritaskan isi teks asli yang diunggah atau ditulis pengguna!
     if (cleanDesc.length > 0) {
       const rawParagraphs = cleanDesc.split(/\n\s*\n/).filter((p) => p.trim());
       const paragraphs = rawParagraphs.length > 0 ? rawParagraphs : [cleanDesc];
@@ -312,22 +333,15 @@ export const curriculumService = {
       };
     }
 
-    // 2. JIKA DESKRIPSI KOSONG, CEK APAKAH TOPIK INI SESUAI DENGAN MODUL RPL/SDLC BAWAAN
-    const isAuthenticRpl =
-      titleLower.includes('rekayasa perangkat lunak') ||
-      titleLower.includes('sdlc') ||
-      titleLower.includes('rpl') ||
-      titleLower.includes('analisis & desain');
-
-    const predefined = DEFAULT_MODULE_CONTENT[num];
-    if (isAuthenticRpl && predefined) {
+    // 3. JIKA DESKRIPSI KOSONG TETAPI ADA MODUL PREDEFINED:
+    if (DEFAULT_MODULE_CONTENT[num]) {
       return {
-        ...predefined,
-        title: materialTitle || predefined.title,
+        ...DEFAULT_MODULE_CONTENT[num],
+        title: materialTitle || DEFAULT_MODULE_CONTENT[num].title,
       };
     }
 
-    // 3. FALLBACK DINAMIS JIKA DESKRIPSI KOSONG DAN BUKAN MATERI RPL
+    // 4. FALLBACK DINAMIS JIKA DESKRIPSI KOSONG DAN BUKAN MATERI RPL
     return {
       title: materialTitle || `Materi Pertemuan ${meetingNumber}`,
       readingTime: '4 menit baca',
