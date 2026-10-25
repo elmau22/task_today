@@ -1,0 +1,1375 @@
+/* ==========================================================================
+   Tema "Kampus Cerah"
+   Terinspirasi ilustrasi kartun: langit biru, awan krem, gedung merah-biru,
+   pepohonan hijau, garis tepi tegas, dan bayangan keras ala komik.
+   ========================================================================== */
+
+:root {
+  --navy: #14283f;
+  --text: #1d2f46;
+  --text-dim: #4d6078;
+  --cream: #fbf5e3;
+  --paper: #fffdf6;
+  --sky: #8cc7e8;
+  --sky-soft: #d7ecf8;
+  --red: #d6372f;
+  --red-deep: #b72a23;
+  --red-soft: #ffd9d4;
+  --blue: #2f66b3;
+  --green: #4a8a3a;
+  --sun: #f6c445;
+
+  /* Nama lama dipertahankan agar JSX tidak perlu berubah */
+  --ember: var(--red);
+  --ember-deep: var(--red-deep);
+  --ember-soft: #c0281f;
+  --teal-soft: var(--blue);
+  --cream-dim: var(--text-dim);
+  --line: rgba(20, 40, 63, 0.16);
+  --line-strong: var(--navy);
+
+  --outline: 2.5px solid var(--navy);
+  --shadow-hard: 5px 5px 0 var(--navy);
+  --shadow-hard-lg: 8px 8px 0 var(--navy);
+
+  --font-display: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  --font-brand: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+
+  --ease-calm: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root[data-bs-theme='light'] {
+  --bs-body-bg: var(--cream);
+  --bs-body-color: var(--text);
+  --bs-body-font-family: var(--font-body);
+  --bs-emphasis-color: var(--navy);
+  --bs-heading-color: var(--navy);
+  --bs-secondary-color: var(--text-dim);
+  --bs-border-color: var(--line);
+  --bs-link-color: var(--blue);
+  --bs-link-hover-color: var(--red);
+  --bs-focus-ring-color: rgba(47, 102, 179, 0.25);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--sun);
+  color: var(--navy);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--navy);
+}
+
+h4, h5, h6, .font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--navy);
+}
+
+.text-muted,
+.text-secondary {
+  color: var(--text-dim) !important;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+}
+
+/* ==========================================================================
+   Lapisan suasana (latar belakang seluruh halaman)
+   ========================================================================== */
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(180deg, #bfe1f4 0%, #dff0f2 26%, #f6f3df 55%, var(--cream) 100%);
+}
+
+.atmosphere-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 45% 35% at 22% 4%, rgba(255, 244, 180, 0.7), transparent 70%),
+    radial-gradient(ellipse 50% 30% at 85% 100%, rgba(120, 180, 90, 0.18), transparent 70%);
+  animation: glow-pulse 9s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+.leaf-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Awan bergeser di latar halaman */
+.drift-clouds {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.drift {
+  position: absolute;
+  left: 0;
+  opacity: 0.85;
+  animation: cloud-drift linear infinite;
+  will-change: transform;
+}
+
+.drift-1 { top: 6%;  width: 300px; animation-duration: 120s; animation-delay: -30s; }
+.drift-2 { top: 20%; width: 210px; animation-duration: 160s; animation-delay: -95s; opacity: 0.7; }
+.drift-3 { top: 40%; width: 360px; animation-duration: 200s; animation-delay: -60s; opacity: 0.55; }
+.drift-4 { top: 62%; width: 240px; animation-duration: 140s; animation-delay: -10s; opacity: 0.45; }
+
+@keyframes cloud-drift {
+  from { transform: translateX(-40vw); }
+  to { transform: translateX(110vw); }
+}
+
+/* Berkas cahaya matahari hangat */
+.light-rays {
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 70vw;
+  height: 130%;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.ray {
+  position: absolute;
+  top: 0;
+  height: 140%;
+  transform-origin: top center;
+  background: linear-gradient(180deg, rgba(255, 244, 190, 0.9) 0%, rgba(255, 244, 190, 0.35) 45%, transparent 80%);
+  filter: blur(14px);
+  animation: ray-breathe 11s ease-in-out infinite;
+}
+
+.ray-1 { left: 18%; width: 90px; transform: rotate(-26deg); animation-delay: 0s; }
+.ray-2 { left: 30%; width: 50px; transform: rotate(-30deg); animation-delay: -3s; animation-duration: 14s; }
+.ray-3 { left: 42%; width: 130px; transform: rotate(-24deg); animation-delay: -6s; animation-duration: 17s; }
+.ray-4 { left: 56%; width: 40px; transform: rotate(-32deg); animation-delay: -9s; animation-duration: 12s; }
+
+@keyframes ray-breathe {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.75; }
+}
+
+/* ==========================================================================
+   Animasi teks
+   ========================================================================== */
+
+.split-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.split-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.6em) scale(0.6) rotate(-6deg);
+  transform-origin: 50% 100%;
+  animation: char-pop 0.75s var(--ease-pop) forwards;
+}
+
+@keyframes char-pop {
+  60% { opacity: 1; }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+  }
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fade-up 0.9s var(--ease-calm) forwards;
+}
+
+@keyframes fade-up {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(32px) scale(0.98);
+  transition:
+    opacity 0.7s var(--ease-calm),
+    transform 0.8s var(--ease-pop);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ==========================================================================
+   Navigasi
+   ========================================================================== */
+
+.site-nav {
+  background: rgba(255, 253, 246, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 3px solid var(--navy);
+}
+
+.site-brand {
+  font-family: var(--font-brand);
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+  color: var(--navy) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.site-brand-mark {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid var(--navy);
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--red) 0 50%, var(--blue) 50% 100%);
+  transition: transform 0.5s var(--ease-pop);
+}
+
+.site-brand:hover .site-brand-mark {
+  transform: rotate(90deg) scale(1.1);
+}
+
+.site-nav .nav-link {
+  position: relative;
+  color: var(--navy) !important;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  padding: 0.5rem 0 !important;
+  transition: color 0.25s ease;
+}
+
+.site-nav .nav-link::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: 0.15rem;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--sun);
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s var(--ease-pop);
+}
+
+.site-nav .nav-link:hover::before,
+.site-nav .nav-link.active::before {
+  transform: scaleX(1);
+}
+
+.site-nav .nav-link:hover,
+.site-nav .nav-link.active,
+.site-nav .nav-link.show {
+  color: var(--red-deep) !important;
+}
+
+.site-nav .dropdown-toggle::after {
+  display: none;
+}
+
+.site-nav .dropdown-menu,
+.dropdown-menu {
+  background: var(--paper);
+  border: var(--outline);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 var(--navy);
+  padding: 0.4rem;
+  margin-top: 0.5rem;
+  min-width: 240px;
+}
+
+.site-nav .dropdown-item,
+.dropdown-item {
+  color: var(--navy);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  transition: background 0.18s ease, transform 0.25s var(--ease-pop);
+}
+
+.site-nav .dropdown-item:hover,
+.site-nav .dropdown-item:focus,
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: var(--sky-soft);
+  color: var(--navy);
+  transform: translateX(3px);
+}
+
+.nav-toggle {
+  background: var(--paper);
+  border: var(--outline);
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-weight: 700;
+  padding: 0.35rem 0.9rem;
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 var(--navy);
+}
+
+.nav-toggle:focus {
+  box-shadow: 3px 3px 0 var(--blue);
+}
+
+/* ==========================================================================
+   Tombol
+   ========================================================================== */
+
+.btn-ember,
+.btn-mist,
+.btn-quiet,
+.btn-danger-soft {
+  position: relative;
+  border: var(--outline);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.55rem 1.4rem;
+  box-shadow: 4px 4px 0 var(--navy);
+  transition: transform 0.25s var(--ease-pop), box-shadow 0.25s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.btn-ember:hover,
+.btn-mist:hover,
+.btn-quiet:hover,
+.btn-danger-soft:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--navy);
+}
+
+.btn-ember:active,
+.btn-mist:active,
+.btn-quiet:active,
+.btn-danger-soft:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--navy);
+}
+
+.btn-ember {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn-ember:hover,
+.btn-ember:focus-visible {
+  background: var(--red-deep);
+  color: #fff;
+}
+
+.btn-ember:disabled {
+  background: var(--red-deep);
+  color: rgba(255, 255, 255, 0.75);
+  border-color: var(--navy);
+}
+
+.btn-mist {
+  background: var(--paper);
+  color: var(--navy);
+}
+
+.btn-mist:hover,
+.btn-mist:focus-visible {
+  background: var(--sky-soft);
+  color: var(--navy);
+}
+
+.btn-quiet {
+  background: var(--paper);
+  color: var(--text-dim);
+  padding: 0.3rem 0.9rem;
+  font-size: 0.88rem;
+  box-shadow: 3px 3px 0 var(--navy);
+}
+
+.btn-quiet:hover {
+  background: var(--sky-soft);
+  color: var(--navy);
+}
+
+.btn-quiet.is-on {
+  background: var(--sun);
+  color: var(--navy);
+}
+
+.btn-danger-soft {
+  background: var(--paper);
+  color: var(--red-deep);
+}
+
+.btn-danger-soft:hover,
+.btn-danger-soft:focus-visible {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn-sm.btn-danger-soft {
+  padding: 0.3rem 0.9rem;
+  font-size: 0.88rem;
+  box-shadow: 3px 3px 0 var(--navy);
+}
+
+.text-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--blue);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  position: relative;
+  transition: color 0.2s ease, transform 0.3s var(--ease-pop);
+}
+
+.text-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sun);
+  transform: scaleX(0.3);
+  transform-origin: left;
+  transition: transform 0.4s var(--ease-pop);
+}
+
+.text-link:hover {
+  color: var(--red-deep);
+}
+
+.text-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* ==========================================================================
+   Label kecil, judul bagian
+   ========================================================================== */
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--navy);
+  background: var(--sun);
+  border: 2px solid var(--navy);
+  border-radius: 999px;
+  padding: 0.1rem 0.9rem;
+  margin-bottom: 1rem;
+  box-shadow: 2px 2px 0 var(--navy);
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 0.75rem;
+}
+
+.section-lead {
+  color: var(--text-dim);
+  font-size: 1.05rem;
+  max-width: 640px;
+  line-height: 1.75;
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: var(--sky-soft);
+  border: 2px solid var(--navy);
+  padding: 0.05rem 0.6rem;
+  border-radius: 8px;
+}
+
+.tag-ember {
+  background: var(--red-soft);
+}
+
+.divider {
+  border: 0;
+  height: 0;
+  border-top: 3px dashed rgba(20, 40, 63, 0.3);
+  opacity: 1;
+  background: none;
+}
+
+/* ==========================================================================
+   Kartu / panel
+   ========================================================================== */
+
+.panel {
+  background: var(--paper);
+  border: var(--outline);
+  border-radius: 16px;
+  box-shadow: var(--shadow-hard);
+  color: var(--text);
+}
+
+.card-nature {
+  background: var(--paper);
+  border: var(--outline);
+  border-radius: 16px;
+  box-shadow: var(--shadow-hard);
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  transition: transform 0.35s var(--ease-pop), box-shadow 0.35s ease;
+}
+
+.card-title,
+.card h4, .card h5, .card h6,
+.card-nature h4, .card-nature h5, .card-nature h6,
+.material-row h4, .material-row h5, .material-row h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.42 !important;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.card-body {
+  min-width: 0;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.card-text {
+  line-height: 1.6 !important;
+  margin-bottom: 0.5rem;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.card-nature:hover {
+  transform: translate(-4px, -4px) rotate(-0.4deg);
+  box-shadow: var(--shadow-hard-lg);
+}
+
+.card-media {
+  overflow: hidden;
+  border: 2px solid var(--navy);
+  border-radius: 10px;
+  position: relative;
+}
+
+.card-media img {
+  width: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.8s var(--ease-calm);
+}
+
+.card-nature:hover .card-media img {
+  transform: scale(1.07);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Hero halaman utama: adegan kampus yang hidup
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  border-bottom: 3px solid var(--navy);
+  background: var(--sky);
+}
+
+.hero .leaf-canvas {
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-card {
+  background: rgba(255, 253, 246, 0.95);
+  border: var(--outline);
+  border-radius: 20px;
+  box-shadow: var(--shadow-hard-lg);
+  padding: 2rem 2.25rem;
+  animation: card-in 0.9s var(--ease-pop) both;
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(30px) rotate(-1.5deg) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.hero-title {
+  font-size: clamp(2.4rem, 4.8vw, 4.1rem);
+  font-weight: 800;
+  line-height: 1.02;
+  margin-bottom: 1.25rem;
+  color: var(--navy);
+}
+
+.hero-title em {
+  font-style: normal;
+  color: var(--red);
+}
+
+.hero-lead {
+  font-size: 1.08rem;
+  line-height: 1.75;
+  color: var(--text-dim);
+}
+
+/* Adegan */
+.scene-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.scene {
+  position: absolute;
+  transform: translate3d(0, var(--py, 0px), 0);
+  will-change: transform;
+}
+
+.scene-camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 62% 100%;
+  animation: camera-drift 34s ease-in-out infinite alternate;
+}
+
+@keyframes camera-drift {
+  from { transform: scale(1); }
+  to { transform: scale(1.025); }
+}
+
+.scene-layer {
+  position: absolute;
+  inset: 0;
+  background-image: var(--scene-img);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.scene-group {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Pohon bergoyang tertiup angin */
+.scene-sway {
+  animation: tree-sway ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes tree-sway {
+  0%, 100% { transform: rotate(calc(var(--amp, 0.6) * -1deg)) translateX(-0.08%); }
+  50% { transform: rotate(calc(var(--amp, 0.6) * 1deg)) translateX(0.1%); }
+}
+
+/* Jip bergetar halus seperti mesin menyala */
+.scene-idle {
+  animation: engine-idle 0.14s steps(2) infinite;
+}
+
+@keyframes engine-idle {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(0.05%, 0.07%); }
+  100% { transform: translate(-0.04%, 0); }
+}
+
+/* Karakter bernapas, menoleh, dan rambutnya tertiup angin */
+.scene-breathe {
+  animation: breathe 4.2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.004, 1.02); }
+}
+
+.scene-head {
+  animation: head-look 11s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes head-look {
+  0%, 12%, 100% { transform: translate(0, 0) rotate(0deg); }
+  24% { transform: translate(-0.12%, -0.1%) rotate(-3deg); }
+  40% { transform: translate(-0.12%, -0.1%) rotate(-3deg); }
+  52% { transform: translate(0.05%, 0.05%) rotate(1.5deg); }
+  64% { transform: translate(0, 0) rotate(0deg); }
+  78% { transform: translate(0.06%, -0.12%) rotate(2deg); }
+  90% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.scene-hair {
+  animation: hair-flutter 2.6s ease-in-out infinite;
+}
+
+@keyframes hair-flutter {
+  0%, 100% { transform: rotate(0deg) skewX(0deg); }
+  30% { transform: rotate(-3.5deg) skewX(-3deg); }
+  60% { transform: rotate(2.5deg) skewX(2deg); }
+  80% { transform: rotate(-1deg); }
+}
+
+/* Matahari, sinar, kilau */
+.scene-sun {
+  position: absolute;
+  left: 33%;
+  top: 14%;
+  width: 46%;
+  height: 46%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 245, 190, 0.6) 0%, rgba(255, 245, 190, 0.18) 38%, transparent 68%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: sun-pulse 8s ease-in-out infinite;
+}
+
+@keyframes sun-pulse {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.94); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+}
+
+.scene-sunrays {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  background: conic-gradient(
+    from 118deg at 33% 14%,
+    transparent 0deg 6deg,
+    rgba(255, 248, 200, 0.85) 9deg,
+    transparent 13deg 20deg,
+    rgba(255, 248, 200, 0.6) 23deg,
+    transparent 27deg 36deg,
+    rgba(255, 248, 200, 0.8) 40deg,
+    transparent 46deg 58deg,
+    rgba(255, 248, 200, 0.5) 62deg,
+    transparent 67deg 360deg
+  );
+  -webkit-mask-image: radial-gradient(circle at 33% 14%, #000 0%, transparent 62%);
+  mask-image: radial-gradient(circle at 33% 14%, #000 0%, transparent 62%);
+  transform-origin: 33% 14%;
+  animation: rays-sway 16s ease-in-out infinite alternate;
+}
+
+@keyframes rays-sway {
+  from { transform: rotate(-4deg); opacity: 0.45; }
+  to { transform: rotate(5deg); opacity: 0.95; }
+}
+
+.scene-glint {
+  position: absolute;
+  width: 3.2%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0.55) 22%, transparent 62%);
+  pointer-events: none;
+  animation: glint 5.5s ease-in-out infinite;
+}
+
+@keyframes glint {
+  0%, 60%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  88% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.4; }
+}
+
+/* Awan di langit adegan */
+.scene-cloud {
+  position: absolute;
+  left: 0;
+  opacity: 0.9;
+  animation: scene-cloud-drift linear infinite;
+  will-change: transform;
+}
+
+.scene-cloud-1 { top: 4%;  width: 18%; animation-duration: 95s; animation-delay: -30s; }
+.scene-cloud-2 { top: 20%; width: 12%; animation-duration: 130s; animation-delay: -80s; opacity: 0.75; }
+.scene-cloud-3 { top: 36%; width: 15%; animation-duration: 110s; animation-delay: -10s; opacity: 0.8; }
+
+@keyframes scene-cloud-drift {
+  from { transform: translateX(-30%); }
+  to { transform: translateX(640%); }
+}
+
+/* Bayangan awan melintas di tanah */
+.cloud-shadow {
+  position: absolute;
+  top: 78%;
+  width: 34%;
+  height: 22%;
+  border-radius: 50%;
+  background: rgba(20, 50, 40, 0.16);
+  filter: blur(26px);
+  mix-blend-mode: multiply;
+  animation: shadow-pass linear infinite;
+}
+
+.cloud-shadow-1 { animation-duration: 70s; animation-delay: -20s; }
+.cloud-shadow-2 { top: 88%; width: 26%; animation-duration: 95s; animation-delay: -60s; }
+
+@keyframes shadow-pass {
+  from { transform: translateX(-60%); }
+  to { transform: translateX(340%); }
+}
+
+/* Burung melintas */
+.scene-bird {
+  position: absolute;
+  width: 2%;
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  left: 0;
+  animation: bird-fly linear infinite, bird-flap 0.7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.scene-bird-1 { top: 10%; animation-duration: 48s, 0.7s; animation-delay: -6s, 0s; }
+.scene-bird-2 { top: 15%; width: 1.6%; animation-duration: 56s, 0.8s; animation-delay: -4s, -0.2s; }
+.scene-bird-3 { top: 7%; width: 1.4%; animation-duration: 62s, 0.65s; animation-delay: -12s, -0.4s; }
+
+@keyframes bird-fly {
+  from { transform: translate(-2000%, 40%); }
+  to { transform: translate(5200%, -140%); }
+}
+
+@keyframes bird-flap {
+  0%, 100% { scale: 1 1; }
+  50% { scale: 1 0.35; }
+}
+
+/* Kepala halaman lain */
+.page-head {
+  padding: 4rem 0 2.25rem;
+}
+
+.page-title {
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+/* Angka besar */
+.numeral {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.8rem;
+  line-height: 1;
+  color: var(--red);
+  -webkit-text-stroke: 1.5px var(--navy);
+  paint-order: stroke fill;
+}
+
+.numeral-label {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.material-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.25rem 1.6rem;
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .material-row {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.material-row .text-link {
+  justify-self: start;
+}
+
+/* Kutipan / about */
+.about-quote {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--blue);
+}
+
+/* ==========================================================================
+   Formulir
+   ========================================================================== */
+
+.form-label {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 0.4rem;
+}
+
+.form-control,
+.form-select {
+  background-color: #fff;
+  border: 2px solid var(--navy);
+  border-radius: 10px;
+  color: var(--navy);
+  font-weight: 600;
+  padding: 0.65rem 0.9rem;
+  transition: box-shadow 0.25s ease, transform 0.25s var(--ease-pop), border-color 0.25s ease;
+}
+
+.form-control::placeholder {
+  color: rgba(77, 96, 120, 0.6);
+  font-weight: 500;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: #fff;
+  border-color: var(--navy);
+  color: var(--navy);
+  box-shadow: 4px 4px 0 var(--blue);
+  transform: translate(-1px, -1px);
+}
+
+.form-control::file-selector-button {
+  background: var(--sky-soft);
+  color: var(--navy);
+  border: 0;
+  border-right: 2px solid var(--navy);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.form-control:hover:not(:disabled):not([readonly])::file-selector-button {
+  background: var(--sun);
+}
+
+.form-danger {
+  border-color: var(--red-deep);
+}
+
+/* Pemberitahuan */
+.notice {
+  border: 2px solid var(--navy);
+  background: #dff3d3;
+  color: var(--navy);
+  padding: 0.8rem 1rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  border-radius: 10px;
+}
+
+.notice-info {
+  background: var(--sky-soft);
+}
+
+/* ==========================================================================
+   Tabel
+   ========================================================================== */
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text);
+  --bs-table-hover-bg: rgba(140, 199, 232, 0.2);
+  --bs-table-hover-color: var(--navy);
+  --bs-table-border-color: var(--line);
+}
+
+.table thead th {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--navy);
+  border-bottom: 2.5px solid var(--navy);
+  padding-bottom: 0.8rem;
+}
+
+.table td {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+/* ==========================================================================
+   Modal
+   ========================================================================== */
+
+.modal-veil {
+  background: rgba(20, 40, 63, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: veil-in 0.4s ease forwards;
+}
+
+@keyframes veil-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-veil .modal-dialog {
+  animation: dialog-in 0.6s var(--ease-pop) forwards;
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.94) rotate(-1deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.modal-panel {
+  background: var(--paper);
+  border: var(--outline);
+  border-radius: 18px;
+  color: var(--text);
+  box-shadow: var(--shadow-hard-lg);
+}
+
+.modal-fullscreen .modal-panel {
+  border-radius: 0 !important;
+  max-height: 100vh !important;
+  height: 100vh !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   Halaman Khusus Pembaca Dokumen (Document Viewer Page)
+   ========================================================================== */
+
+.document-viewport {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.document-sheet {
+  transition: max-width 0.35s ease, box-shadow 0.35s ease;
+  width: 100%;
+}
+
+.document-sheet iframe {
+  background: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .document-sheet {
+    border-radius: 12px !important;
+    box-shadow: 4px 4px 0 var(--navy) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-dialog {
+    margin: 0.4rem;
+  }
+}
+
+.modal-panel .modal-header,
+.modal-panel .modal-footer {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.modal-panel-danger {
+  border-top: 8px solid var(--red);
+}
+
+.modal-title-serif {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--navy);
+}
+
+.close-text {
+  background: var(--paper);
+  border: 2px solid var(--navy);
+  border-radius: 10px;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.2rem 0.85rem;
+  box-shadow: 2px 2px 0 var(--navy);
+  transition: transform 0.2s var(--ease-pop), background 0.2s ease;
+}
+
+.close-text:hover {
+  background: var(--red-soft);
+  transform: translate(-1px, -1px);
+}
+
+.media-frame {
+  background: #eaf3f8;
+  border: 2px solid var(--navy);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Kaki halaman */
+.site-footer {
+  border-top: 3px solid var(--navy);
+  background: var(--paper);
+  padding: 1.6rem 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+/* ==========================================================================
+   Responsivitas Multi-Perangkat (HP, Tablet/iPad, Komputer/Laptop) & Kinerja Ringan
+   ========================================================================== */
+
+/* Optimalisasi Input di HP agar tidak auto-zoom pada iOS Safari */
+@media (max-width: 768px) {
+  .form-control,
+  .form-select {
+    font-size: 16px !important;
+  }
+
+  /* Ringankan filter blur di HP/Tablet agar grafis 60fps mulus */
+  .ray {
+    filter: blur(6px) !important;
+  }
+
+  .cloud-shadow {
+    filter: blur(12px) !important;
+  }
+
+  .hero-card {
+    padding: 1.35rem 1.25rem !important;
+    border-radius: 16px !important;
+  }
+
+  .hero-title {
+    font-size: clamp(1.9rem, 7vw, 2.8rem) !important;
+    line-height: 1.1 !important;
+  }
+
+  .hero-lead {
+    font-size: 0.98rem !important;
+    line-height: 1.6 !important;
+  }
+
+  .page-head {
+    padding: 2.5rem 0 1.5rem !important;
+  }
+
+  .page-title {
+    font-size: clamp(1.9rem, 7.5vw, 2.7rem) !important;
+  }
+
+  .section-title {
+    font-size: clamp(1.7rem, 6vw, 2.3rem) !important;
+  }
+
+  .panel {
+    border-radius: 14px !important;
+  }
+
+  /* Perbaiki tombol pada layar sentuh HP */
+  .btn-ember,
+  .btn-mist,
+  .btn-quiet,
+  .btn-danger-soft {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Menu navigasi mobile */
+  .navbar-collapse {
+    background: var(--paper);
+    border: var(--outline);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-top: 0.75rem;
+    box-shadow: var(--shadow-hard);
+  }
+}
+
+/* Tablet & iPad (768px - 1024px) */
+@media (min-width: 768.02px) and (max-width: 1024px) {
+  .hero-card {
+    padding: 1.75rem 1.85rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2.3rem, 4.5vw, 3.4rem);
+  }
+}
+
+/* Komputer / Laptop (> 1024px) */
+@media (min-width: 1024.02px) {
+  .hero-card {
+    padding: 2.25rem 2.5rem;
+  }
+}
+
+/* ==========================================================================
+   Aksesibilitas: kurangi gerakan
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .split-char,
+  .fade-up,
+  .reveal,
+  .hero-card {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   Gaya Ekspor / Cetak Dokumen Rapi ke PDF (@media print)
+   ========================================================================== */
+
+@media print {
+  /* Sembunyikan elemen navigasi, latar suasana, dan tombol saat ekspor PDF */
+  .site-nav,
+  .site-footer,
+  .atmosphere,
+  .btn,
+  .nav-toggle,
+  .close-text,
+  aside,
+  .d-lg-none,
+  .divider,
+  .modal-veil,
+  .pdf-extracted-container .btn {
+    display: none !important;
+  }
+
+  body,
+  .app-shell,
+  .app-main,
+  article,
+  .panel {
+    background: #ffffff !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .col-lg-8,
+  .col-xl-9 {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+
+  /* Cegah halaman terpotong di tengah judul atau gambar */
+  h1, h2, h3, .panel, .card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-extracted-container .panel {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: #111111 !important;
+  }
+}
