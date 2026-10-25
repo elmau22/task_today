@@ -258,81 +258,91 @@ Pendekatan iteratif yang membagi proyek ke dalam siklus kerja pendek berdurasi 1
 export const curriculumService = {
   getModuleContent(meetingNumber, materialTitle = '', materialDescription = '') {
     const num = Number(meetingNumber);
-    const predefined = DEFAULT_MODULE_CONTENT[num];
+    const titleLower = (materialTitle || '').toLowerCase();
+    const cleanDesc = (materialDescription || '').trim();
 
-    // Jika pertemuan 1 dan materi berjudul RPL/SDLC, prioritaskan modul autentik Bu Dian!
-    if (num === 1 && predefined) {
-      return {
-        ...predefined,
-        title: materialTitle || predefined.title,
-      };
-    }
+    // 1. JIKA MATERI MEMILIKI DESKRIPSI / TEKS ASLI DI DATABASE:
+    // Selalu prioritaskan isi teks asli yang diunggah / ditulis pengguna!
+    if (cleanDesc.length > 0) {
+      const rawParagraphs = cleanDesc.split(/\n\s*\n/).filter((p) => p.trim());
+      const paragraphs = rawParagraphs.length > 0 ? rawParagraphs : [cleanDesc];
 
-    // Jika deskripsi dari database panjang dan memuat paragraf terstruktur,
-    // gunakan teks dosen sebagai modul utama
-    if (materialDescription && materialDescription.length > 140) {
-      const paragraphs = materialDescription.split('\n\n').filter((p) => p.trim());
+      const wordCount = cleanDesc.split(/\s+/).filter(Boolean).length;
+      const readingMinutes = Math.max(2, Math.ceil(wordCount / 150));
+
       return {
-        title: materialTitle || `Pertemuan ${meetingNumber}`,
-        readingTime: `${Math.max(3, Math.ceil(materialDescription.split(' ').length / 140))} menit baca`,
+        title: materialTitle || `Materi Pertemuan ${meetingNumber}`,
+        readingTime: `${readingMinutes} menit baca`,
         objectives: [
-          `Memahami materi pokok bahasan perkuliahan ke-${meetingNumber}.`,
-          'Mampu menerapkan konsep dalam analisis sistem secara mandiri.',
+          `Memahami pokok bahasan dan konsep utama mengenai ${materialTitle || `pertemuan ke-${meetingNumber}`}.`,
+          'Mampu menganalisis dan menerapkan materi pembelajaran pada studi kasus nyata.',
+          'Menyelesaikan latihan pemahaman dan penugasan perkuliahan secara mandiri.',
         ],
-        sections: paragraphs.map((par, idx) => ({
-          heading: idx === 0 ? 'Pokok Bahasan Materi' : `Poin Pembahasan ${idx + 1}`,
-          content: par,
-          callout:
-            idx === 1
-              ? {
-                  type: 'tip',
-                  title: 'Catatan Perkuliahan',
-                  text: 'Pelajari konsep di atas dan diskusikan implementasinya bersama kelompok tugas Anda.',
-                }
-              : null,
-        })),
+        sections: paragraphs.map((par, idx) => {
+          let heading = `Poin Pembahasan ${idx + 1}`;
+          let content = par;
+
+          const matchHeading = par.match(/^([#0-9A-Za-z\s\-_:]{3,60})\n([\s\S]+)$/);
+          if (matchHeading && matchHeading[1].length < 60) {
+            heading = matchHeading[1].replace(/^[#\s]+/, '').trim();
+            content = matchHeading[2].trim();
+          } else if (idx === 0) {
+            heading = `Pengantar ${materialTitle || 'Materi'}`;
+          }
+
+          return {
+            heading,
+            content,
+            callout:
+              idx === 0
+                ? {
+                    type: 'concept',
+                    title: 'Intisari Pembelajaran',
+                    text: `Pahami prinsip dasar dari topik ${materialTitle || 'ini'} sebelum melanjutkan ke materi berikutnya.`,
+                  }
+                : idx === paragraphs.length - 1
+                ? {
+                    type: 'tip',
+                    title: 'Catatan Perkuliahan',
+                    text: 'Terapkan konsep di atas dan diskusikan implementasinya bersama kelompok tugas perkuliahan Anda.',
+                  }
+                : null,
+          };
+        }),
       };
     }
 
-    // Gunakan materi kurikulum bawaan jika ada
-    if (predefined) {
+    // 2. JIKA DESKRIPSI KOSONG, CEK APAKAH TOPIK INI SESUAI DENGAN MODUL RPL/SDLC BAWAAN
+    const isAuthenticRpl =
+      titleLower.includes('rekayasa perangkat lunak') ||
+      titleLower.includes('sdlc') ||
+      titleLower.includes('rpl') ||
+      titleLower.includes('analisis & desain');
+
+    const predefined = DEFAULT_MODULE_CONTENT[num];
+    if (isAuthenticRpl && predefined) {
       return {
         ...predefined,
         title: materialTitle || predefined.title,
       };
     }
 
-    // Fallback umum yang tetap terstruktur rapi ala Dicoding
+    // 3. FALLBACK DINAMIS JIKA DESKRIPSI KOSONG DAN BUKAN MATERI RPL
     return {
       title: materialTitle || `Materi Pertemuan ${meetingNumber}`,
-      readingTime: '5 menit baca',
+      readingTime: '4 menit baca',
       objectives: [
-        `Memahami capaian pembelajaran untuk pertemuan ke-${meetingNumber}.`,
-        'Menguasai metodologi dan teknik analisis yang dibahas.',
-        'Menyelesaikan tugas dan latihan yang relevan dengan pokok bahasan.',
+        `Memahami capaian pembelajaran untuk topik ${materialTitle || `pertemuan ke-${meetingNumber}`}.`,
+        'Mempelajari materi melalui modul bacaan dan lampiran berkas yang tersedia.',
       ],
       sections: [
         {
-          heading: '1. Gambaran Umum Pembelajaran',
-          content:
-            materialDescription ||
-            `Pada pertemuan ke-${meetingNumber} ini, Anda mempelajari topik lanjutan dalam mata kuliah Analisis & Desain Sistem. Fokus utama diarahkan pada penguasaan konsep teoretis serta keterampilan praktis dalam merancang sistem informasi modern.`,
+          heading: `Pokok Bahasan: ${materialTitle || `Pertemuan ${meetingNumber}`}`,
+          content: `Modul perkuliahan untuk topik "${materialTitle || `Pertemuan ${meetingNumber}`}". Anda dapat membaca materi secara lengkap atau membuka lampiran berkas presentasi/dokumen yang tersedia pada tombol "Opsi Dokumen" di atas.`,
           callout: {
             type: 'concept',
-            title: 'Capaian Pembelajaran',
-            text: 'Pastikan Anda memahami alur diagram dan keterkaitan antara analisis kebutuhan dengan implementasi basis data serta antarmuka sistem.',
-          },
-        },
-        {
-          heading: '2. Panduan Belajar Mandiri',
-          content: `Untuk mendapatkan pemahaman optimal dari materi ini, ikuti langkah berikut:
-1. Bacalah materi teks bacaan secara cermat dari awal hingga selesai.
-2. Perhatikan diagram alur, tabel perbandingan, dan contoh kasus yang disertakan.
-3. Kerjakan latihan mandiri dan konsultasikan kendala pemahaman dengan dosen pengampu pada sesi tanya jawab.`,
-          callout: {
-            type: 'tip',
-            title: 'Kunci Sukses Analis',
-            text: 'Keterampilan analisis terasah melalui latihan studi kasus nyata. Luangkan waktu untuk mengamati alur kerja sistem di sekitar Anda.',
+            title: 'Catatan Modul',
+            text: 'Gunakan tombol Opsi Dokumen untuk melihat berkas lampiran slide presentasi atau dokumen modul pembelajaran.',
           },
         },
       ],
@@ -347,9 +357,34 @@ export const curriculumService = {
 
     const title = taskItem.title || 'Dokumen Tugas Mahasiswa';
     const student = taskItem.student_name || 'Mahasiswa UMC';
-    const desc = taskItem.description || '';
+    const desc = (taskItem.description || '').trim();
 
-    // Modul tugas terstruktur untuk tugas IMK (Interaksi Manusia dan Komputer)
+    // 1. Jika tugas memiliki deskripsi teks pembahasan mandiri di database, selalu utamakan teks asli!
+    if (desc && desc.length > 0 && !title.toLowerCase().includes('imk') && !title.toLowerCase().includes('interaksi manusia')) {
+      const rawParagraphs = desc.split(/\n\s*\n/).filter((p) => p.trim());
+      const paragraphs = rawParagraphs.length > 0 ? rawParagraphs : [desc];
+
+      return {
+        title,
+        subtitle: `Disusun oleh: ${student} · Universitas Muhammadiyah Cirebon`,
+        readingTime: `${Math.max(2, Math.ceil(desc.split(/\s+/).length / 150))} menit baca`,
+        meta: {
+          course: 'Tugas Perkuliahan',
+          studentName: student,
+          docType: taskItem.file_type?.toUpperCase() || 'DOKUMEN',
+        },
+        objectives: [
+          `Menyelesaikan instruksi dan lembar kerja ${title}.`,
+          'Menguraikan pembahasan hasil analisis secara komprehensif dan terstruktur.',
+        ],
+        sections: paragraphs.map((par, idx) => ({
+          heading: idx === 0 ? 'Deskripsi & Lembar Tugas' : `Pembahasan Bagian ${idx + 1}`,
+          content: par,
+        })),
+      };
+    }
+
+    // 2. Modul tugas terstruktur untuk tugas IMK (Interaksi Manusia dan Komputer)
     if (
       taskItem.id === '79a78fbb-fe02-4198-a0ee-1651e6a7065b' ||
       title.toLowerCase().includes('imk') ||
@@ -363,7 +398,6 @@ export const curriculumService = {
         meta: {
           course: 'Interaksi Manusia dan Komputer (IMK)',
           studentName: student,
-          nim: '240511086',
           prodi: 'Teknik Informatika · Fakultas Teknik',
           docType: 'Laporan Tugas & Jawaban Diskusi Evaluasi',
         },

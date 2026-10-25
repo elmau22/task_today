@@ -219,7 +219,7 @@ export default function HomePage() {
 
           <div className="row g-4">
             {featuredTasks.map((task, i) => {
-              const meta = parseItemMetadata(task.description);
+              const meta = parseItemMetadata(task);
               return (
                 <Reveal key={task.id} className="col-12 col-md-6 col-lg-4" delay={i * 120}>
                   <Link to={`/tugas/${task.id}`} className="text-decoration-none d-block h-100">
@@ -260,7 +260,7 @@ export default function HomePage() {
             })}
 
             {featuredMaterials.map((mat, i) => {
-              const meta = parseItemMetadata(mat.description);
+              const meta = parseItemMetadata(mat);
               return (
                 <Reveal
                   key={mat.id}

@@ -15,12 +15,15 @@ export function parseItemMetadata(item, defaultCourse = 'Analisis & Desain Siste
     };
   }
 
-  let course = item.mata_kuliah || item.subject || '';
-  let lecturer = item.dosen_pengampu || item.lecturer || '';
-  let prodi = item.prodi || item.study_program || '';
-  let university = item.universitas || item.university || '';
-  let coverUrl = item.cover_url || item.coverUrl || '';
-  let cleanDescription = item.description || '';
+  // Mendukung parameter baik berupa objek utuh (item) maupun string (description)
+  const itemObj = typeof item === 'string' ? { description: item } : item;
+
+  let course = itemObj.mata_kuliah || itemObj.subject || '';
+  let lecturer = itemObj.dosen_pengampu || itemObj.lecturer || '';
+  let prodi = itemObj.prodi || itemObj.study_program || '';
+  let university = itemObj.universitas || itemObj.university || '';
+  let coverUrl = itemObj.cover_url || itemObj.coverUrl || '';
+  let cleanDescription = itemObj.description || '';
 
   // Ekstrak dari format terstruktur <!--META:{...}--> jika tersimpan di deskripsi
   if (cleanDescription.includes('<!--META:')) {

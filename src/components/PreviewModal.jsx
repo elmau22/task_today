@@ -26,7 +26,7 @@ export default function PreviewModal({
 
   const type = (item.file_type || '').toLowerCase();
   const url = item.file_url || '';
-  const itemMeta = parseItemMetadata(item.description);
+  const itemMeta = parseItemMetadata(item);
 
   const getYouTubeEmbedUrl = (rawUrl) => {
     if (!rawUrl) return '';

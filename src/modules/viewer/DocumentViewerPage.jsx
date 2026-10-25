@@ -214,7 +214,7 @@ export default function DocumentViewerPage({ type = 'materi' }) {
   }
 
   // Metadata dinamis (Mata Kuliah, Dosen Pengampu, Prodi, Universitas)
-  const itemMeta = parseItemMetadata(item?.description);
+  const itemMeta = parseItemMetadata(item);
 
   // Data modul kurikulum ala Dicoding (Mendukung Materi & Tugas)
   const moduleData =
@@ -494,7 +494,7 @@ export default function DocumentViewerPage({ type = 'materi' }) {
               {sidebarItems.map((sItem) => {
                 const isActive = sItem.id === id;
                 const isDone = completedIds.includes(sItem.id);
-                const sMeta = parseItemMetadata(sItem.description);
+                const sMeta = parseItemMetadata(sItem);
 
                 return (
                   <div
