@@ -972,13 +972,36 @@ export default function LoginPage() {
                     </div>
                   ) : (
                     <div>
-                      <label className="form-label">Pilih Berkas Tugas (PDF)</label>
+                      <label className="form-label">
+                        Pilih Berkas Tugas{' '}
+                        {taskType === 'ppt'
+                          ? '(PowerPoint PPT / PPTX)'
+                          : taskType === 'excel'
+                          ? '(Excel XLSX)'
+                          : taskType === 'image'
+                          ? '(Gambar / Diagram)'
+                          : '(PDF)'}
+                      </label>
                       <input
                         type="file"
                         className="form-control"
                         required={!taskEditId}
+                        accept={
+                          taskType === 'ppt'
+                            ? '.ppt,.pptx'
+                            : taskType === 'excel'
+                            ? '.xls,.xlsx'
+                            : taskType === 'image'
+                            ? 'image/*'
+                            : '.pdf,application/pdf'
+                        }
                         onChange={(e) => handleTaskFileChange(e.target.files[0])}
                       />
+                      {taskType === 'ppt' && (
+                        <div className="small text-muted mt-1" style={{ fontSize: '0.75rem' }}>
+                          Slide PPT/PPTX akan disematkan menggunakan penampil interaktif Microsoft Office &amp; Google Presentation.
+                        </div>
+                      )}
                       {extractingPdfText && (
                         <div className="small text-navy fw-semibold mt-1">
                           Sedang mengekstrak seluruh teks berkas PDF secara otomatis...
@@ -1297,13 +1320,32 @@ export default function LoginPage() {
                     </div>
                   ) : (
                     <div>
-                      <label className="form-label">Pilih Berkas Dokumen Materi (PDF)</label>
+                      <label className="form-label">
+                        Pilih Berkas Dokumen Materi{' '}
+                        {matType === 'ppt'
+                          ? '(PowerPoint PPT / PPTX)'
+                          : matType === 'excel'
+                          ? '(Excel XLSX)'
+                          : '(PDF)'}
+                      </label>
                       <input
                         type="file"
                         className="form-control"
                         required={!matEditId}
+                        accept={
+                          matType === 'ppt'
+                            ? '.ppt,.pptx'
+                            : matType === 'excel'
+                            ? '.xls,.xlsx'
+                            : '.pdf,application/pdf'
+                        }
                         onChange={(e) => handleMatFileChange(e.target.files[0])}
                       />
+                      {matType === 'ppt' && (
+                        <div className="small text-muted mt-1" style={{ fontSize: '0.75rem' }}>
+                          Slide PPT/PPTX akan disematkan menggunakan penampil interaktif Microsoft Office &amp; Google Presentation.
+                        </div>
+                      )}
                       {extractingPdfText && (
                         <div className="small text-navy fw-semibold mt-1">
                           Sedang mengekstrak seluruh teks berkas PDF materi secara otomatis...

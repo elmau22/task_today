@@ -100,6 +100,49 @@ export default function PdfCoverImage({
 
   if (!imageSrc) {
     if (fallback) return fallback;
+
+    // Visual fallback khusus berkas slide presentasi PowerPoint
+    if (
+      pdfUrl &&
+      (pdfUrl.toLowerCase().includes('.ppt') ||
+        pdfUrl.toLowerCase().includes('.pptx') ||
+        alt.toLowerCase().includes('ppt'))
+    ) {
+      return (
+        <div
+          className={`d-flex flex-column align-items-center justify-content-center p-3 text-center ${className}`}
+          style={{
+            ...style,
+            background: 'linear-gradient(135deg, #d24726 0%, #a23015 100%)',
+            color: '#ffffff',
+            border: '2px solid var(--navy)',
+          }}
+        >
+          <svg
+            width="34"
+            height="34"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mb-1"
+          >
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+          <span className="fw-bold text-uppercase" style={{ fontSize: '0.78rem', letterSpacing: '0.05em' }}>
+            Slide Presentasi
+          </span>
+          <span className="small opacity-75" style={{ fontSize: '0.68rem' }}>
+            PowerPoint (.pptx)
+          </span>
+        </div>
+      );
+    }
+
     return (
       <div
         className={`d-flex align-items-center justify-content-center bg-light ${className}`}

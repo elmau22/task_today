@@ -128,12 +128,27 @@ export default function DocumentViewerPage({ type = 'materi' }) {
 
       setItem(activeItem);
 
-      // Otomatis aktifkan ekstraksi dokumen jika berkas adalah PDF tanpa perlu menekan button
+      // Deteksi otomatis format berkas: PDF diaktifkan ekstraksinya, PPT/PPTX langsung membuka penampil slide
       if (activeItem) {
         const isPdf =
           activeItem.file_type?.toLowerCase() === 'pdf' ||
           (activeItem.file_url && activeItem.file_url.toLowerCase().includes('.pdf'));
-        setShowExtractedPdf(Boolean(isPdf));
+        const isPpt =
+          ['ppt', 'pptx'].includes(activeItem.file_type?.toLowerCase()) ||
+          (activeItem.file_url &&
+            (activeItem.file_url.toLowerCase().includes('.ppt') ||
+              activeItem.file_url.toLowerCase().includes('.pptx')));
+
+        if (isPdf) {
+          setShowExtractedPdf(true);
+          setShowOriginalSlide(false);
+        } else if (isPpt) {
+          setShowExtractedPdf(false);
+          setShowOriginalSlide(true);
+        } else {
+          setShowExtractedPdf(false);
+          setShowOriginalSlide(Boolean(activeItem.file_url && activeItem.file_url !== '#'));
+        }
       }
     } catch (err) {
       setErrorMsg(err.message || 'Gagal memuat dokumen pembelajaran.');
@@ -279,14 +294,112 @@ export default function DocumentViewerPage({ type = 'materi' }) {
       );
     }
 
+    const isPpt =
+      fileType === 'ppt' ||
+      fileType === 'pptx' ||
+      fileUrl.toLowerCase().includes('.ppt') ||
+      fileUrl.toLowerCase().includes('.pptx');
+
+    // Penampil Slide Presentasi PowerPoint (Opsi B: Hybrid Office / Google)
+    if (isPpt) {
+      const activeEngine = viewerEngine === 'google' ? 'google' : 'office';
+      const embedSrc =
+        activeEngine === 'google'
+          ? `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`
+          : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+
+      return (
+        <div className="ppt-slide-viewer-box">
+          {/* Bilah Kontrol Slide Presentasi */}
+          <div className="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 px-3 border rounded-top gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <span className="tag tag-ember" style={{ fontSize: '0.72rem' }}>
+                Slide PPT / PPTX
+              </span>
+              <span className="small text-muted fw-semibold">
+                Penyedia: {activeEngine === 'google' ? 'Google Docs Presentation Viewer' : 'Microsoft PowerPoint Online'}
+              </span>
+            </div>
+
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                className={`btn btn-quiet btn-sm ${activeEngine === 'office' ? 'is-on' : ''}`}
+                onClick={() => setViewerEngine('office')}
+                title="Gunakan penampil Microsoft Office"
+              >
+                Office Viewer
+              </button>
+              <button
+                type="button"
+                className={`btn btn-quiet btn-sm ${activeEngine === 'google' ? 'is-on' : ''}`}
+                onClick={() => setViewerEngine('google')}
+                title="Gunakan penampil Google Docs jika Office lambat"
+              >
+                Google Viewer
+              </button>
+              <a
+                href={`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-quiet btn-sm"
+                title="Buka presentasi di layar penuh tab baru"
+              >
+                Layar Penuh Web ↗
+              </a>
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noreferrer"
+                download
+                className="btn btn-ember btn-sm"
+                title="Unduh berkas presentasi asli"
+              >
+                Unduh PPT
+              </a>
+            </div>
+          </div>
+
+          {/* Frame Tampilan Slide PPT */}
+          <div className="position-relative ratio ratio-16x9 border-start border-end border-bottom shadow-sm" style={{ minHeight: '520px' }}>
+            <iframe
+              src={embedSrc}
+              title={item.title}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+            />
+          </div>
+
+          {/* Banner Informasi Opsi A (Tips Konversi ke PDF untuk Scroll Mulus) */}
+          <div className="p-3 mt-3 rounded border" style={{ background: '#fdfbf7', borderColor: '#e6ded3' }}>
+            <div className="d-flex align-items-start gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ember)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <div className="small text-muted" style={{ lineHeight: 1.5 }}>
+                <strong className="text-navy">Tips Membaca Lebih Nyaman:</strong> Anda dapat mengganti penyedia ke <em>Google Viewer</em> jika slide PowerPoint lambat dimuat. 
+                Untuk pengalaman membaca terbaik tanpa perlu menekan tombol slide berikutnya, simpan presentasi ke format PDF (<em>File &gt; Export to PDF</em>) agar seluruh lembar slide otomatis diekstrak menjadi alur bacaan gulir (<em>vertical scroll feed</em>).
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     if (
-      ['ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx'].includes(fileType) ||
-      fileUrl.includes('.ppt') ||
-      fileUrl.includes('.doc')
+      ['doc', 'docx', 'xls', 'xlsx'].includes(fileType) ||
+      fileUrl.includes('.doc') ||
+      fileUrl.includes('.xls')
     ) {
-      const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-        fileUrl
-      )}`;
+      const activeEngine = viewerEngine === 'google' ? 'google' : 'office';
+      const officeViewerUrl =
+        activeEngine === 'google'
+          ? `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`
+          : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
       return (
         <iframe
           src={officeViewerUrl}
@@ -606,7 +719,7 @@ export default function DocumentViewerPage({ type = 'materi' }) {
                         </button>
                       )}
 
-                      {/* Opsi Berkas Asli */}
+                      {/* Opsi Berkas Asli / Slide Presentasi PPT */}
                       {item.file_url && item.file_url !== '#' && (
                         <button
                           type="button"
@@ -619,16 +732,48 @@ export default function DocumentViewerPage({ type = 'materi' }) {
                         >
                           <span className="d-flex align-items-center gap-2">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                              <circle cx="12" cy="12" r="3" />
+                              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                              <line x1="8" y1="21" x2="16" y2="21" />
+                              <line x1="12" y1="17" x2="12" y2="21" />
                             </svg>
-                            <span>{showOriginalSlide ? 'Sembunyikan Berkas Asli' : 'Lihat Berkas Asli'}</span>
+                            <span>
+                              {['ppt', 'pptx'].includes(item.file_type?.toLowerCase()) ||
+                              item.file_url.toLowerCase().includes('.ppt') ||
+                              item.file_url.toLowerCase().includes('.pptx')
+                                ? showOriginalSlide
+                                  ? 'Tutup Slide PPT'
+                                  : 'Buka Slide Presentasi PPT'
+                                : showOriginalSlide
+                                ? 'Sembunyikan Berkas Asli'
+                                : 'Lihat Berkas Asli'}
+                            </span>
                           </span>
                           {showOriginalSlide && (
                             <span className="badge bg-primary" style={{ fontSize: '0.65rem' }}>Aktif</span>
                           )}
                         </button>
                       )}
+
+                      {/* Tautan Khusus PowerPoint Online */}
+                      {item.file_url &&
+                        (['ppt', 'pptx'].includes(item.file_type?.toLowerCase()) ||
+                          item.file_url.toLowerCase().includes('.ppt') ||
+                          item.file_url.toLowerCase().includes('.pptx')) && (
+                          <a
+                            href={`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(item.file_url)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="dropdown-item d-flex align-items-center gap-2 p-2 rounded small"
+                            onClick={() => setShowDocMenu(false)}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                            <span>Buka di PowerPoint Web ↗</span>
+                          </a>
+                        )}
 
                       <div className="dropdown-divider my-1" style={{ borderColor: 'var(--line)' }} />
 
@@ -707,50 +852,54 @@ export default function DocumentViewerPage({ type = 'materi' }) {
             />
           )}
 
-          {/* JIKA USER MEMILIH MELIHAT PENAMPIL BERKAS ASLI (MODEL HYBRID) */}
+          {/* JIKA USER MEMILIH MELIHAT PENAMPIL BERKAS ASLI (MODEL HYBRID / SLIDE PPT) */}
           {showOriginalSlide && (
             <div className="panel p-3 p-md-4 mb-4 border-primary" style={{ background: '#f5f9fc' }}>
-              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <div>
-                  <span className="eyebrow mb-1">Lampiran Berkas Asli</span>
-                  <h3 className="h6 fw-bold mb-0 text-navy">
-                    {type === 'materi'
-                      ? `Dokumen Presentasi / Berkas Pertemuan ${item.meeting_number || ''}`
-                      : `Lampiran Tugas: ${item.title}`}
-                  </h3>
-                </div>
+              {!(['ppt', 'pptx'].includes(item.file_type?.toLowerCase()) ||
+                item.file_url?.toLowerCase().includes('.ppt') ||
+                item.file_url?.toLowerCase().includes('.pptx')) && (
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <div>
+                    <span className="eyebrow mb-1">Lampiran Berkas Asli</span>
+                    <h3 className="h6 fw-bold mb-0 text-navy">
+                      {type === 'materi'
+                        ? `Dokumen Presentasi / Berkas Pertemuan ${item.meeting_number || ''}`
+                        : `Lampiran Tugas: ${item.title}`}
+                    </h3>
+                  </div>
 
-                <div className="d-flex align-items-center gap-2">
-                  {item.file_type === 'pdf' && (
-                    <div className="d-flex gap-1">
-                      <button
-                        type="button"
-                        className={`btn btn-quiet btn-sm ${viewerEngine !== 'google' ? 'is-on' : ''}`}
-                        onClick={() => setViewerEngine('native')}
-                      >
-                        Bawaan
-                      </button>
-                      <button
-                        type="button"
-                        className={`btn btn-quiet btn-sm ${viewerEngine === 'google' ? 'is-on' : ''}`}
-                        onClick={() => setViewerEngine('google')}
-                      >
-                        Google Viewer
-                      </button>
-                    </div>
-                  )}
+                  <div className="d-flex align-items-center gap-2">
+                    {item.file_type === 'pdf' && (
+                      <div className="d-flex gap-1">
+                        <button
+                          type="button"
+                          className={`btn btn-quiet btn-sm ${viewerEngine !== 'google' ? 'is-on' : ''}`}
+                          onClick={() => setViewerEngine('native')}
+                        >
+                          Bawaan
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn btn-quiet btn-sm ${viewerEngine === 'google' ? 'is-on' : ''}`}
+                          onClick={() => setViewerEngine('google')}
+                        >
+                          Google Viewer
+                        </button>
+                      </div>
+                    )}
 
-                  <a
-                    href={item.file_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    download
-                    className="btn btn-ember btn-sm"
-                  >
-                    Unduh Berkas Asli
-                  </a>
+                    <a
+                      href={item.file_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      download
+                      className="btn btn-ember btn-sm"
+                    >
+                      Unduh Berkas Asli
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {renderOriginalFileViewer()}
             </div>
