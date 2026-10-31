@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../config/supabase';
+import { api } from '../../lib/api';
 import { Link, useSearchParams } from 'react-router-dom';
 import PreviewModal from '../../components/PreviewModal';
 import SplitText from '../../components/effects/SplitText';
@@ -27,11 +27,7 @@ export default function AssignmentPage() {
 
   async function fetchAssignments() {
     try {
-      const { data } = await supabase
-        .from('assignments')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (data) setAssignments(data);
+      setAssignments(await api.get('/assignments'));
     } catch (err) {
       console.error('Error fetching assignments:', err);
     }

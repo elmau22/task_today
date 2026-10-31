@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../../config/supabase';
+import { api } from '../../lib/api';
 import { curriculumService } from '../../services/curriculumService';
 import { parseItemMetadata } from '../../services/metadataHelper';
 import PdfExtractedViewer from '../../components/PdfExtractedViewer';
@@ -74,12 +74,7 @@ export default function DocumentViewerPage({ type = 'materi' }) {
 
       if (type === 'materi') {
         // 1. Ambil seluruh daftar materi untuk sidebar
-        const { data: mats } = await supabase
-          .from('materials')
-          .select('*')
-          .order('meeting_number', { ascending: true });
-
-        const materialsList = mats || [];
+        const materialsList = await api.get('/materials').catch(() => []);
         setSidebarItems(materialsList);
 
         // Cari materi aktif berdasarkan id di URL
@@ -87,25 +82,13 @@ export default function DocumentViewerPage({ type = 'materi' }) {
         if (current) {
           activeItem = current;
         } else {
-          const { data: directData, error } = await supabase
-            .from('materials')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-          if (error || !directData) {
+          activeItem = await api.get(`/materials/${id}`).catch(() => {
             throw new Error('Materi perkuliahan tidak ditemukan.');
-          }
-          activeItem = directData;
+          });
         }
       } else {
         // 2. Ambil seluruh daftar tugas untuk sidebar tugas
-        const { data: tasks } = await supabase
-          .from('assignments')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        const taskList = tasks || [];
+        const taskList = await api.get('/assignments').catch(() => []);
         setSidebarItems(taskList);
 
         // Cari tugas aktif berdasarkan id di URL
@@ -113,16 +96,9 @@ export default function DocumentViewerPage({ type = 'materi' }) {
         if (current) {
           activeItem = current;
         } else {
-          const { data: directData, error } = await supabase
-            .from('assignments')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-          if (error || !directData) {
+          activeItem = await api.get(`/assignments/${id}`).catch(() => {
             throw new Error('Dokumen tugas perkuliahan tidak ditemukan.');
-          }
-          activeItem = directData;
+          });
         }
       }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../config/supabase';
+import { api } from '../../lib/api';
 import { Link, useSearchParams } from 'react-router-dom';
 import PreviewModal from '../../components/PreviewModal';
 import SplitText from '../../components/effects/SplitText';
@@ -27,11 +27,7 @@ export default function MaterialPage() {
 
   async function fetchMaterials() {
     try {
-      const { data } = await supabase
-        .from('materials')
-        .select('*')
-        .order('meeting_number', { ascending: true });
-      if (data) setMaterials(data);
+      setMaterials(await api.get('/materials'));
     } catch (err) {
       console.error('Error fetching materials:', err);
     }
