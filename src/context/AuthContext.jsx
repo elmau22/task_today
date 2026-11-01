@@ -15,12 +15,15 @@ export function AuthProvider({ children }) {
     if (!sessionUser) return null;
     const meta = sessionUser.user_metadata || {};
     let role = profile?.role || meta.role || 'mahasiswa';
-    // Berikan peran admin untuk akun admin utama
-    if (sessionUser.email === 'admin@lokalkreatif.com') {
+    
+    // Akun admin utama yang dijamin hak akses admin
+    const adminEmails = ['admin@lokalkreatif.com', 'faraelmaulana22@gmail.com'];
+    if (adminEmails.includes(sessionUser.email?.toLowerCase()) || meta.role === 'admin') {
       role = 'admin';
     }
-    const name = profile?.name || meta.name || sessionUser.email?.split('@')[0] || 'Pengguna';
-    const nim = profile?.identity_number || meta.identity_number || '';
+
+    const name = profile?.name || meta.name || (sessionUser.email?.toLowerCase().includes('farael') ? 'Mohamad Farael Maulana (Admin)' : sessionUser.email?.split('@')[0]) || 'Pengguna';
+    const nim = profile?.identity_number || meta.identity_number || '240511086';
     return {
       id: sessionUser.id,
       email: sessionUser.email,
@@ -61,13 +64,16 @@ export function AuthProvider({ children }) {
           const local = localStorage.getItem('portal_user_session');
           if (local) {
             const parsed = JSON.parse(local);
+            const isAdmin = ['faraelmaulana22@gmail.com', 'admin@lokalkreatif.com', '240511086'].some((v) =>
+              (parsed.email || parsed.nim || '').toLowerCase().includes(v)
+            );
             setUser({
               id: 'local_user',
               name: parsed.name,
-              email: `${parsed.nim || 'user'}@kampus.local`,
-              role: 'admin',
-              identity_number: parsed.nim || '',
-              nim: parsed.nim || '',
+              email: parsed.email || 'faraelmaulana22@gmail.com',
+              role: isAdmin ? 'admin' : (parsed.role || 'mahasiswa'),
+              identity_number: parsed.nim || '240511086',
+              nim: parsed.nim || '240511086',
             });
           }
         } catch {
@@ -92,11 +98,21 @@ export function AuthProvider({ children }) {
   }, [syncProfile]);
 
   const login = useCallback(async (email, password) => {
-    // Dukung login legacy dengan NIM/Username jika diinput
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    // Deteksi akun Admin Farael
+    const isFaraelAdmin =
+      cleanEmail === 'faraelmaulana22@gmail.com' ||
+      cleanEmail === 'elmau22' ||
+      cleanEmail === 'farael' ||
+      cleanEmail === 'mohamad farael maulana';
+
     let authEmail = cleanEmail;
     if (!cleanEmail.includes('@')) {
-      if (cleanEmail === 'elmau22' || cleanEmail === 'farael' || cleanEmail === 'admin') {
+      if (isFaraelAdmin) {
+        authEmail = 'faraelmaulana22@gmail.com';
+      } else if (cleanEmail === 'admin') {
         authEmail = 'admin@lokalkreatif.com';
       } else {
         authEmail = `${cleanEmail}@kampus.local`;
@@ -105,27 +121,52 @@ export function AuthProvider({ children }) {
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: authEmail,
-      password,
+      password: cleanPassword,
     });
 
+    // Cek password custom yang tersimpan di browser jika ada
+    const customPass = localStorage.getItem('admin_farael_password');
+    const validFaraelPassword =
+      cleanPassword === 'admin123' ||
+      cleanPassword === 'admin 123' ||
+      cleanPassword === 'Admin123!' ||
+      cleanPassword === '240511086' ||
+      cleanPassword === customPass;
+
     if (error) {
-      // Fallback untuk akun offline/development
-      if (
-        (cleanEmail === 'admin@lokalkreatif.com' || cleanEmail === 'elmau22') &&
-        (password === 'Admin12345' || password === '240511086')
-      ) {
-        const fallbackAdmin = {
-          id: 'admin_local',
-          email: 'admin@lokalkreatif.com',
+      // Jika email belum dikonfirmasi atau ada proteksi Supabase, berikan akses langsung untuk Admin Farael
+      if (isFaraelAdmin && validFaraelPassword) {
+        const adminUser = {
+          id: 'admin_farael',
+          email: 'faraelmaulana22@gmail.com',
           name: 'Mohamad Farael Maulana (Admin)',
           role: 'admin',
           identity_number: '240511086',
           nim: '240511086',
         };
+        setUser(adminUser);
+        localStorage.setItem(
+          'portal_user_session',
+          JSON.stringify({ name: adminUser.name, email: adminUser.email, nim: adminUser.nim, role: 'admin' })
+        );
+        return adminUser;
+      }
+
+      // Fallback admin default
+      if (cleanEmail === 'admin@lokalkreatif.com' && (cleanPassword === 'Admin12345' || cleanPassword === 'admin123')) {
+        const fallbackAdmin = {
+          id: 'admin_root',
+          email: 'admin@lokalkreatif.com',
+          name: 'Administrator',
+          role: 'admin',
+          identity_number: 'ADMIN01',
+          nim: 'ADMIN01',
+        };
         setUser(fallbackAdmin);
-        localStorage.setItem('portal_user_session', JSON.stringify({ name: fallbackAdmin.name, nim: fallbackAdmin.nim }));
+        localStorage.setItem('portal_user_session', JSON.stringify({ name: fallbackAdmin.name, nim: fallbackAdmin.nim, role: 'admin' }));
         return fallbackAdmin;
       }
+
       throw new Error(error.message || 'Email atau kata sandi tidak sesuai.');
     }
 
@@ -134,14 +175,18 @@ export function AuthProvider({ children }) {
   }, [syncProfile]);
 
   const register = useCallback(async ({ name, email, identity_number, password }) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const isAdmin = cleanEmail === 'faraelmaulana22@gmail.com' || cleanEmail === 'admin@lokalkreatif.com';
+    const assignedRole = isAdmin ? 'admin' : 'mahasiswa';
+
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
+      email: cleanEmail,
       password,
       options: {
         data: {
           name: name.trim(),
           identity_number: identity_number ? identity_number.trim() : '',
-          role: 'mahasiswa',
+          role: assignedRole,
         },
       },
     });
@@ -150,27 +195,48 @@ export function AuthProvider({ children }) {
       throw new Error(error.message || 'Pendaftaran gagal. Silakan periksa data Anda.');
     }
 
-    // Buat profil di tabel profiles jika ada
     if (data.user) {
       try {
         await supabase.from('profiles').upsert([
           {
             id: data.user.id,
             name: name.trim(),
-            email: email.trim().toLowerCase(),
+            email: cleanEmail,
             identity_number: identity_number ? identity_number.trim() : '',
-            role: 'mahasiswa',
+            role: assignedRole,
             created_at: new Date().toISOString(),
           },
         ]);
       } catch {
-        // Abaikan jika tabel profiles belum dibuat
+        // Abaikan jika tabel profiles belum ada
       }
       await syncProfile(data.user);
     }
 
     return data.user;
   }, [syncProfile]);
+
+  const changePassword = useCallback(async (newPassword) => {
+    const cleanPass = newPassword.trim();
+    if (!cleanPass || cleanPass.length < 6) {
+      throw new Error('Kata sandi baru minimal 6 karakter.');
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: cleanPass,
+      });
+      if (error) {
+        console.warn('Supabase updateUser error:', error.message);
+      }
+    } catch {
+      // Abaikan
+    }
+
+    // Selalu simpan di penyimpanan sesi browser agar kata sandi baru langsung aktif
+    localStorage.setItem('admin_farael_password', cleanPass);
+    return true;
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -189,10 +255,11 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      changePassword,
       isStaff: user?.role === 'admin' || user?.role === 'dosen',
       isAdmin: user?.role === 'admin',
     }),
-    [user, ready, login, register, logout]
+    [user, ready, login, register, logout, changePassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

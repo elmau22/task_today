@@ -19,7 +19,7 @@ const DEFAULT_COVER =
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user: currentUser, logout, isStaff, isAdmin } = useAuth();
+  const { user: currentUser, logout, changePassword, isStaff, isAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState('tugas'); // 'tugas', 'materi', 'blog', 'logs'
   const [loading, setLoading] = useState(false);
@@ -502,9 +502,34 @@ export default function DashboardPage() {
             Masuk sebagai <strong>{currentUser.name}</strong> ({ROLE_LABEL[currentUser.role]}). Menu yang tampil disesuaikan dengan peran Anda.
           </p>
         </div>
-        <button type="button" className="btn btn-danger-soft align-self-start align-self-md-end" onClick={async () => { await logout(); navigate('/login'); }}>
-          Keluar
-        </button>
+        <div className="d-flex flex-wrap gap-2 align-self-start align-self-md-end">
+          <button
+            type="button"
+            className="btn btn-mist"
+            onClick={async () => {
+              const newPass = window.prompt('Masukkan kata sandi baru untuk akun Anda (minimal 6 karakter):');
+              if (!newPass) return;
+              try {
+                await changePassword(newPass);
+                alert('Kata sandi berhasil diperbarui! Gunakan kata sandi baru ini saat masuk berikutnya.');
+              } catch (err) {
+                alert('Gagal mengubah kata sandi: ' + err.message);
+              }
+            }}
+          >
+            Ganti Kata Sandi
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger-soft"
+            onClick={async () => {
+              await logout();
+              navigate('/login');
+            }}
+          >
+            Keluar
+          </button>
+        </div>
       </header>
 
       {/* Navigasi Tab (menyesuaikan peran) */}

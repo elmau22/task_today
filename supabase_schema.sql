@@ -163,5 +163,7 @@ create policy "Allow all modify deletion_logs" on public.deletion_logs for all u
 
 -- Insert Akun Admin Default di profiles (jika belum ada)
 insert into public.profiles (id, name, email, identity_number, role)
-values ('admin_root', 'Administrator Task Today', 'admin@lokalkreatif.com', 'ADMIN01', 'admin')
-on conflict (id) do nothing;
+values 
+  ('admin_root', 'Administrator Task Today', 'admin@lokalkreatif.com', 'ADMIN01', 'admin'),
+  ('admin_farael', 'Mohamad Farael Maulana (Admin)', 'faraelmaulana22@gmail.com', '240511086', 'admin')
+on conflict (id) do update set role = 'admin', email = excluded.email;
