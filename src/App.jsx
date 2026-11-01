@@ -1,7 +1,8 @@
 import React, { useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Atmosphere from './components/effects/Atmosphere';
+import RequireAuth from './components/RequireAuth';
 
 const HomePage = lazy(() => import('./modules/home/HomePage'));
 const AssignmentPage = lazy(() => import('./modules/assignments/AssignmentPage'));
@@ -9,6 +10,10 @@ const MaterialPage = lazy(() => import('./modules/materials/MaterialPage'));
 const BlogPage = lazy(() => import('./modules/blog/BlogPage'));
 const BlogDetailPage = lazy(() => import('./modules/blog/BlogDetailPage'));
 const ContactPage = lazy(() => import('./modules/contact/ContactPage'));
+const FounderPage = lazy(() => import('./modules/founders/FounderPage'));
+const JournalPage = lazy(() => import('./modules/journals/JournalPage'));
+const JournalDetailPage = lazy(() => import('./modules/journals/JournalDetailPage'));
+const DashboardPage = lazy(() => import('./modules/admin/DashboardPage'));
 const LoginPage = lazy(() => import('./modules/admin/LoginPage'));
 const DocumentViewerPage = lazy(() => import('./modules/viewer/DocumentViewerPage'));
 
@@ -46,7 +51,11 @@ export default function App() {
               <Route path="/blog/:id" element={<BlogDetailPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/admin" element={<LoginPage />} />
+              <Route path="/pendiri" element={<FounderPage />} />
+              <Route path="/jurnal" element={<JournalPage />} />
+              <Route path="/jurnal/:id" element={<JournalDetailPage />} />
+              <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+              <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>
         </main>

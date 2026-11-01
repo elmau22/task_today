@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../config/supabase';
+import { api } from '../lib/api';
 
 export default function DeleteReasonModal({ item, itemType, tableName, onClose, onSuccess }) {
   const [deletedBy, setDeletedBy] = useState('');
@@ -18,23 +18,7 @@ export default function DeleteReasonModal({ item, itemType, tableName, onClose, 
 
     setLoading(true);
     try {
-      const { error: logError } = await supabase.from('deletion_logs').insert([
-        {
-          item_type: itemType,
-          item_title: item.title,
-          deleted_by: deletedBy,
-          reason: reason,
-        },
-      ]);
-
-      if (logError) throw logError;
-
-      const { error: deleteError } = await supabase
-        .from(tableName)
-        .delete()
-        .eq('id', item.id);
-
-      if (deleteError) throw deleteError;
+      await api.del(`/${tableName}/${item.id}`, { reason: `${reason} (dilaporkan oleh ${deletedBy})` });
 
       alert(`${itemType} "${item.title}" telah dihapus permanen dan dilaporkan ke log Admin.`);
       onSuccess();
